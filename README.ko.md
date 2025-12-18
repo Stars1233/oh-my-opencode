@@ -272,7 +272,7 @@ opencode auth login
   "google_auth": false,
   "agents": {
     "frontend-ui-ux-engineer": { "model": "google/gemini-3-pro-high" },
-    "document-writer": { "model": "google/gemini-3-pro-high" },
+    "document-writer": { "model": "google/gemini-3-flash" },
     "multimodal-looker": { "model": "google/gemini-2.5-flash" }
   }
 }
@@ -616,7 +616,7 @@ Schema 자동 완성이 지원됩니다:
   "google_auth": false,
   "agents": {
     "frontend-ui-ux-engineer": { "model": "google/gemini-3-pro-high" },
-    "document-writer": { "model": "google/gemini-3-pro-high" },
+    "document-writer": { "model": "google/gemini-3-flash" },
     "multimodal-looker": { "model": "google/gemini-2.5-flash" }
   }
 }

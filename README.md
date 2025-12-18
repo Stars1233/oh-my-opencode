@@ -305,7 +305,7 @@ The `opencode-antigravity-auth` plugin uses different model names than the built
   "google_auth": false,
   "agents": {
     "frontend-ui-ux-engineer": { "model": "google/gemini-3-pro-high" },
-    "document-writer": { "model": "google/gemini-3-pro-high" },
+    "document-writer": { "model": "google/gemini-3-flash" },
     "multimodal-looker": { "model": "google/gemini-2.5-flash" }
   }
 }
@@ -681,7 +681,7 @@ When using `opencode-antigravity-auth`, disable the built-in auth and override a
   "google_auth": false,
   "agents": {
     "frontend-ui-ux-engineer": { "model": "google/gemini-3-pro-high" },
-    "document-writer": { "model": "google/gemini-3-pro-high" },
+    "document-writer": { "model": "google/gemini-3-flash" },
     "multimodal-looker": { "model": "google/gemini-2.5-flash" }
   }
 }

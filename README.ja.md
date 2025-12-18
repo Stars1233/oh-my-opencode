@@ -275,7 +275,7 @@ opencode auth login
   "google_auth": false,
   "agents": {
     "frontend-ui-ux-engineer": { "model": "google/gemini-3-pro-high" },
-    "document-writer": { "model": "google/gemini-3-pro-high" },
+    "document-writer": { "model": "google/gemini-3-flash" },
     "multimodal-looker": { "model": "google/gemini-2.5-flash" }
   }
 }
@@ -622,7 +622,7 @@ Oh My OpenCode は以下の場所からフックを読み込んで実行しま�
   "google_auth": false,
   "agents": {
     "frontend-ui-ux-engineer": { "model": "google/gemini-3-pro-high" },
-    "document-writer": { "model": "google/gemini-3-pro-high" },
+    "document-writer": { "model": "google/gemini-3-flash" },
     "multimodal-looker": { "model": "google/gemini-2.5-flash" }
   }
 }
