@@ -1,6 +1,7 @@
 import type { Message, Part } from "@opencode-ai/sdk"
 
-const PLACEHOLDER_TEXT = "[user interrupted]"
+const ASSISTANT_PLACEHOLDER_TEXT = "[user interrupted]"
+const USER_PLACEHOLDER_TEXT = "[empty message]"
 
 interface MessageWithParts {
   info: Message
@@ -37,15 +38,25 @@ function hasValidContent(parts: Part[]): boolean {
   return parts.some((part) => hasTextContent(part) || isToolPart(part))
 }
 
+function getPlaceholderText(role: string): string {
+  return role === "user" ? USER_PLACEHOLDER_TEXT : ASSISTANT_PLACEHOLDER_TEXT
+}
+
 export function createEmptyMessageSanitizerHook(): MessagesTransformHook {
   return {
     "experimental.chat.messages.transform": async (_input, output) => {
       const { messages } = output
 
-      for (const message of messages) {
-        if (message.info.role === "user") continue
+      for (let i = 0; i < messages.length; i++) {
+        const message = messages[i]
+        const isLastMessage = i === messages.length - 1
+        const role = message.info.role
+
+        // API allows final assistant message to be empty
+        if (isLastMessage && role === "assistant") continue
 
         const parts = message.parts
+        const placeholderText = getPlaceholderText(role)
 
         // FIX: Removed `&& parts.length > 0` - empty arrays also need sanitization
         // When parts is [], the message has no content and would cause API error:
@@ -57,7 +68,7 @@ export function createEmptyMessageSanitizerHook(): MessagesTransformHook {
             if (part.type === "text") {
               const textPart = part as unknown as { text?: string; synthetic?: boolean }
               if (!textPart.text || !textPart.text.trim()) {
-                textPart.text = PLACEHOLDER_TEXT
+                textPart.text = placeholderText
                 textPart.synthetic = true
                 injected = true
                 break
@@ -73,7 +84,7 @@ export function createEmptyMessageSanitizerHook(): MessagesTransformHook {
               messageID: message.info.id,
               sessionID: (message.info as unknown as { sessionID?: string }).sessionID ?? "",
               type: "text" as const,
-              text: PLACEHOLDER_TEXT,
+              text: placeholderText,
               synthetic: true,
             }
 
@@ -89,7 +100,7 @@ export function createEmptyMessageSanitizerHook(): MessagesTransformHook {
           if (part.type === "text") {
             const textPart = part as unknown as { text?: string; synthetic?: boolean }
             if (textPart.text !== undefined && textPart.text.trim() === "") {
-              textPart.text = PLACEHOLDER_TEXT
+              textPart.text = placeholderText
               textPart.synthetic = true
             }
           }
