@@ -324,6 +324,12 @@ export async function executeCompact(
     }
   }
 
+  if (Date.now() - retryState.lastAttemptTime > 300000) {
+    retryState.attempt = 0
+    autoCompactState.fallbackStateBySession.delete(sessionID)
+    autoCompactState.truncateStateBySession.delete(sessionID)
+  }
+
   if (retryState.attempt < RETRY_CONFIG.maxAttempts) {
     retryState.attempt++
     retryState.lastAttemptTime = Date.now()
@@ -350,7 +356,7 @@ export async function executeCompact(
           query: { directory },
         })
 
-        clearSessionState(autoCompactState, sessionID)
+        autoCompactState.compactionInProgress.delete(sessionID)
 
         setTimeout(async () => {
           try {
