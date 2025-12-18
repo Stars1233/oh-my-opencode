@@ -25,6 +25,7 @@ const TOKEN_LIMIT_KEYWORDS = [
   "token limit",
   "context length",
   "too many tokens",
+  "non-empty content",
 ]
 
 function extractTokensFromMessage(message: string): { current: number; max: number } | null {

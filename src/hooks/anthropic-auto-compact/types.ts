@@ -28,6 +28,7 @@ export interface AutoCompactState {
   retryStateBySession: Map<string, RetryState>
   fallbackStateBySession: Map<string, FallbackState>
   truncateStateBySession: Map<string, TruncateState>
+  emptyContentAttemptBySession: Map<string, number>
   compactionInProgress: Set<string>
 }
 

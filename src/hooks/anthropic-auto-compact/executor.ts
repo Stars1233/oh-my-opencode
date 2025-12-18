@@ -1,6 +1,7 @@
 import type { AutoCompactState, FallbackState, RetryState, TruncateState } from "./types"
 import { FALLBACK_CONFIG, RETRY_CONFIG, TRUNCATE_CONFIG } from "./types"
 import { findLargestToolResult, truncateToolResult } from "./storage"
+import { findEmptyMessages, injectTextPart } from "../session-recovery/storage"
 
 type Client = {
   session: {
@@ -151,7 +152,48 @@ function clearSessionState(autoCompactState: AutoCompactState, sessionID: string
   autoCompactState.retryStateBySession.delete(sessionID)
   autoCompactState.fallbackStateBySession.delete(sessionID)
   autoCompactState.truncateStateBySession.delete(sessionID)
+  autoCompactState.emptyContentAttemptBySession.delete(sessionID)
   autoCompactState.compactionInProgress.delete(sessionID)
+}
+
+function getOrCreateEmptyContentAttempt(
+  autoCompactState: AutoCompactState,
+  sessionID: string
+): number {
+  return autoCompactState.emptyContentAttemptBySession.get(sessionID) ?? 0
+}
+
+async function fixEmptyMessages(
+  sessionID: string,
+  autoCompactState: AutoCompactState,
+  client: Client
+): Promise<boolean> {
+  const emptyMessageIds = findEmptyMessages(sessionID)
+  if (emptyMessageIds.length === 0) return false
+
+  let fixed = false
+  for (const messageID of emptyMessageIds) {
+    const success = injectTextPart(sessionID, messageID, "[user interrupted]")
+    if (success) fixed = true
+  }
+
+  if (fixed) {
+    const attempt = getOrCreateEmptyContentAttempt(autoCompactState, sessionID)
+    autoCompactState.emptyContentAttemptBySession.set(sessionID, attempt + 1)
+
+    await client.tui
+      .showToast({
+        body: {
+          title: "Session Recovery",
+          message: `Fixed ${emptyMessageIds.length} empty messages. Retrying compaction...`,
+          variant: "warning",
+          duration: 3000,
+        },
+      })
+      .catch(() => {})
+  }
+
+  return fixed
 }
 
 export async function executeCompact(
@@ -207,6 +249,21 @@ export async function executeCompact(
   }
 
   const retryState = getOrCreateRetryState(autoCompactState, sessionID)
+  const errorData = autoCompactState.errorDataBySession.get(sessionID)
+
+  if (errorData?.errorType?.includes("non-empty content")) {
+    const attempt = getOrCreateEmptyContentAttempt(autoCompactState, sessionID)
+    if (attempt < 1) {
+      const fixed = await fixEmptyMessages(sessionID, autoCompactState, client as Client)
+      if (fixed) {
+        autoCompactState.compactionInProgress.delete(sessionID)
+        setTimeout(() => {
+          executeCompact(sessionID, msg, autoCompactState, client, directory)
+        }, 500)
+        return
+      }
+    }
+  }
 
   if (retryState.attempt < RETRY_CONFIG.maxAttempts) {
     retryState.attempt++
