@@ -282,6 +282,8 @@ export async function executeCompact(
     }
   }
 
+  let skipSummarize = false
+
   if (truncateState.truncateAttempt < TRUNCATE_CONFIG.maxTruncateAttempts) {
     const largest = findLargestToolResult(sessionID)
 
@@ -316,20 +318,29 @@ export async function executeCompact(
         }, 500)
         return
       }
-    } else {
-      // Only show this toast if we didn't just try aggressive truncation (to avoid double toasts)
-      if (!errorData?.currentTokens) {
-        await (client as Client).tui
-          .showToast({
-            body: {
-              title: "Truncation Skipped",
-              message: "No large tool outputs found.",
-              variant: "warning",
-              duration: 3000,
-            },
-          })
-          .catch(() => {})
-      }
+    } else if (errorData?.currentTokens && errorData?.maxTokens && errorData.currentTokens > errorData.maxTokens) {
+      skipSummarize = true
+      await (client as Client).tui
+        .showToast({
+          body: {
+            title: "Summarize Skipped",
+            message: `Over token limit (${errorData.currentTokens}/${errorData.maxTokens}) with nothing to truncate. Going to revert...`,
+            variant: "warning",
+            duration: 3000,
+          },
+        })
+        .catch(() => {})
+    } else if (!errorData?.currentTokens) {
+      await (client as Client).tui
+        .showToast({
+          body: {
+            title: "Truncation Skipped",
+            message: "No large tool outputs found.",
+            variant: "warning",
+            duration: 3000,
+          },
+        })
+        .catch(() => {})
     }
   }
 
@@ -355,7 +366,7 @@ export async function executeCompact(
     autoCompactState.truncateStateBySession.delete(sessionID)
   }
 
-  if (retryState.attempt < RETRY_CONFIG.maxAttempts) {
+  if (!skipSummarize && retryState.attempt < RETRY_CONFIG.maxAttempts) {
     retryState.attempt++
     retryState.lastAttemptTime = Date.now()
 
