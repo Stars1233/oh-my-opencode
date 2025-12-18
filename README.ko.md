@@ -278,7 +278,7 @@ opencode auth login
 }
 ```
 
-**사용 가능한 모델 이름**: `google/gemini-3-pro-high`, `google/gemini-3-pro-medium`, `google/gemini-3-pro-low`, `google/gemini-2.5-flash`, `google/gemini-2.5-flash-lite`, `google/claude-sonnet-4-5`, `google/claude-sonnet-4-5-thinking`, `google/claude-opus-4-5-thinking`, `google/gpt-oss-120b-medium`
+**사용 가능한 모델 이름**: `google/gemini-3-pro-high`, `google/gemini-3-pro-medium`, `google/gemini-3-pro-low`, `google/gemini-3-flash`, `google/gemini-2.5-flash`, `google/gemini-2.5-flash-lite`, `google/claude-sonnet-4-5`, `google/claude-sonnet-4-5-thinking`, `google/claude-opus-4-5-thinking`, `google/gpt-oss-120b-medium`
 
 그 후 인증:
 
